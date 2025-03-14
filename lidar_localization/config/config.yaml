@@ -1,0 +1,40 @@
+# msg callback topic
+lidar_topic: "/rs_lidar/points"
+rel_pose_topic: "/pnc/abs/odom" #"/pnc/abs/odom" #"/pnc/odom"
+abs_pose_topic: "/pnc/abs/odom"
+#map pcd path
+map_path: /map/vis_map.pcd
+#init position
+init_position: [0.0, 0.0, 0.0] #[0.0, 0.0, 0.0] # x, y, z
+#init euler
+init_euler: [0.0, 0.0, 0.0] # roll, pitch, yaw
+#是否发布点云  debug
+is_pub_cloud: false
+#输入点云最小点数   
+input_cloud_size_thr: 1000
+#lidar to vehicle calibration 
+lidar_vehicle_xyz: [0.40, 0., 0.2715363]
+lidar_vehicle_rpy: [ -0.0040412739, 0.103561683, -0.023604812]
+#ceres solver options
+lidar_matcher:
+  min_map_size: 50000 # 最少地图点数
+  min_pair_size: 300 #100 #500 # 最小有效点对数
+  iterations: 4
+  validation_thresh: 0.2
+
+  validation_TF_angle_delta_thresh: 2.0 #0.1 
+  validation_ave_final_cost_thresh: 0.05 #0.02 # 每点平均cost阈值
+
+  # source cloud filter
+  blind_distance: 2.0 # 盲区距离
+  leaf_size: 0.1 # VoxelGrid降采样栅格尺寸
+  # ceres solver options
+  num_threads: 2
+  max_num_iterations: 2 #10
+
+  # feature
+  min_point_num: 3 # source点在地图中对应的最少点数
+  min_angle: 20 # source点在地图中对应的点集合的法向量之间最大偏差角度，用于判断是否为有效平面特征点
+
+  # max_pair_size
+  max_pair_size: 800 ####最大有效点数

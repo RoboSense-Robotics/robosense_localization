@@ -1,0 +1,39 @@
+# msg callback topic
+imu_topic: /rs_imu
+can_topic:  /odom
+loc_odom_topic: /pnc/abs/odom
+lidar_odom_topic: "/lidar_pose_xyz"
+#init pose
+x_init: 0.0
+y_init: 0.0
+z_init: 0.0
+roll_init: 0.0
+pitch_init: 0.0
+yaw_init: 0.0
+# noise
+acc_noise: 1
+gyro_noise: 1e-4
+acc_bias_noise: 1e-4
+gyro_bias_noise: 1e-9
+can_odom_noise: 1
+lidar_t_noise: 0.1
+lidar_R_noise: 1e-2
+#init sigma
+p_init_sigma: 0. 
+v_init_sigma: 0.3 
+R_init_sigma: 0. 
+ba_init_sigma: 1e-3 
+bg_init_sigma: 2e-5 
+#gravity
+gravity: 9.794
+#imu to vehicle calibration 
+x_imu_vehicle: 0.0
+y_imu_vehicle: 0.0
+z_imu_vehicle: 0.33
+roll_imu_vehicle: -0.00404
+pitch_imu_vehicle: 0.1035616
+yaw_imu_vehicle: -0.023605
+#if use can update
+can_update: true
+#debug
+pub_traj: false

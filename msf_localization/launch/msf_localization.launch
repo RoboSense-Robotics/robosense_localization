@@ -1,0 +1,7 @@
+<launch>
+    <node name="msf_localization_node" pkg="msf_localization" type="msf_localization_node" output="screen"  >
+    </node>
+
+    <node pkg="rviz" type="rviz" name="rviz" output="screen" 
+      args="-d $(find msf_localization)/rviz/hunter_robot.rviz" required="true" />
+</launch>
