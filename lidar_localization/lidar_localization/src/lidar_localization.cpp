@@ -1,3 +1,19 @@
+/******************************************************************************
+Copyright 2025 RoboSense Technology Co., Ltd
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ *****************************************************************************/
+ 
 #include "lidar_localization.h"
 #include <pcl_conversions/pcl_conversions.h>
 
@@ -215,13 +231,20 @@ bool LidarLocalization::initMap() {
   map_ptr->width = map_ptr->points.size();
   std::vector<int> indices;
   pcl::removeNaNFromPointCloud(*map_ptr, *map_ptr, indices);
-  // 地图下采样
+    // 地图下采样
   pcl::VoxelGrid<PointT> voxel_filter;
   voxel_filter.setInputCloud(map_ptr);
-  voxel_filter.setLeafSize(0.2, 0.2, 0.2);
+  voxel_filter.setLeafSize(0.3, 0.3, 0.3);
   voxel_filter.filter(*map_cloud_ptr_);
   map_cloud_ptr_->height = 1;
   map_cloud_ptr_->width = map_cloud_ptr_->points.size();
+  // Calculate normals for map points
+  pcl::NormalEstimation<PointT, PointT> normal_estimator;
+  normal_estimator.setInputCloud(map_cloud_ptr_);
+  pcl::search::KdTree<PointT>::Ptr normal_tree(new pcl::search::KdTree<PointT>());
+  normal_estimator.setSearchMethod(normal_tree);
+  normal_estimator.setKSearch(10); // Use 10 nearest neighbors
+  normal_estimator.compute(*map_cloud_ptr_);
   // 构建地图KDtree
   kdtree_ptr_.reset(new pcl::KdTreeFLANN<PointT>());
   kdtree_ptr_->setInputCloud(map_cloud_ptr_);

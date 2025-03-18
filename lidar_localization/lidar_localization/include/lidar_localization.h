@@ -9,7 +9,8 @@
 #include <queue>
 #include <thread>
 #include <yaml-cpp/yaml.h>
-
+#include <pcl/features/normal_3d.h>  // 用于NormalEstimation
+#include <pcl/search/kdtree.h>  
 #include "data_type.hpp"
 #include "localization.hpp"
 #include "utility.hpp"

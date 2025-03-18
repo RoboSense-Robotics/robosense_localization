@@ -88,22 +88,36 @@ rviz2 -d msf_localization/rviz/rviz2_config.rviz
 
 * `lidar_localization` : lidar点云消息， 融合定位结果
 
-### 4.4 融合定位初始化
+### 4.4 定位初始化
 
-初始位置默认是 `[0, 0, 0]`， 初始姿态默认是单位矩阵， 用户若已知初始时刻在点云地图中的位姿，或能通过rtk等外部设备获取到初始时刻的位姿， 可通过修改配置文件
+融合定位和点云定位初始位置默认是 `[0, 0, 0]`， 初始姿态默认是单位矩阵， 用户若已知初始时刻在点云地图中的位姿，或能通过rtk等外部设备获取到初始时刻的位姿， 可通过修改配置文件
 
-`msf_localization/config/loc_param.yaml`：
+* 融合定位： `msf_localization/config/loc_param.yaml`:
 
-初始位置: `x_init, y_init, z_init`
+```yaml
+#init pose
+x_init: 2.0
+y_init: 4.0
+z_init: 0.0
+roll_init: 0.0
+pitch_init: 0.0
+yaw_init: 0.0
+```
 
-初始姿态: `roll_init, pitch_init, yaw_init`
+* 点云定位： `lidar_localization/config/config.yaml`:
 
+```yaml
+#init position
+init_position: [2.0, 4.0, 0.0]  # x, y, z
+#init euler
+init_euler: [0.0, 0.0, 0.0] # roll, pitch, yaw
+```
 
 ### 4.5 准备数据集
 
-* `点云地图` : 由某些开源建图软件如fast-lio或其他建图软件生成的点云地图pcd文件
+* `点云地图` : 由某些开源建图软件如fast-lio或其他建图软件生成的点云地图pcd文件,需要放置在`lidar_localization/map`目录下，并配置点云定位配置文件中的`map_path`参数
 
-* `示例数据路径` : 
+* `示例数据路径` : https://cdn.robosense.cn/AC_wiki/localization_demo.zip
 
 ## 5. 功能说明
 

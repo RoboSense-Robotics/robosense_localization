@@ -4,8 +4,8 @@ can_topic:  /odom
 loc_odom_topic: /pnc/abs/odom
 lidar_odom_topic: "/lidar_pose_xyz"
 #init pose
-x_init: 0.0
-y_init: 0.0
+x_init: 2.0
+y_init: 4.0
 z_init: 0.0
 roll_init: 0.0
 pitch_init: 0.0

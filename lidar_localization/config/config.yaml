@@ -3,9 +3,9 @@ lidar_topic: "/rs_lidar/points"
 rel_pose_topic: "/pnc/abs/odom" #"/pnc/abs/odom" #"/pnc/odom"
 abs_pose_topic: "/pnc/abs/odom"
 #map pcd path
-map_path: /map/vis_map.pcd
+map_path: /map/new_map.pcd
 #init position
-init_position: [0.0, 0.0, 0.0] #[0.0, 0.0, 0.0] # x, y, z
+init_position: [2.0, 4.0, 0.0] #[0.0, 0.0, 0.0] # x, y, z
 #init euler
 init_euler: [0.0, 0.0, 0.0] # roll, pitch, yaw
 #是否发布点云  debug
@@ -13,8 +13,8 @@ is_pub_cloud: false
 #输入点云最小点数   
 input_cloud_size_thr: 1000
 #lidar to vehicle calibration 
-lidar_vehicle_xyz: [0.40, 0., 0.2715363]
-lidar_vehicle_rpy: [ -0.0040412739, 0.103561683, -0.023604812]
+lidar_vehicle_xyz: [0.0, 0., 0.]
+lidar_vehicle_rpy: [0.,0.,0.0]
 #ceres solver options
 lidar_matcher:
   min_map_size: 50000 # 最少地图点数
