@@ -135,6 +135,7 @@ POINT_CLOUD_REGISTER_POINT_STRUCT(
     (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(
         std::uint16_t, ring, ring)(double, timestamp, timestamp))
 
+typedef pcl::PointXYZRGB MapPointT;
 typedef pcl::PointXYZINormal PointT;
 typedef pcl::PointCloud<PointT> PointCloudT;
 PCL_INSTANTIATE_PointCloud(PointT)

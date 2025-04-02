@@ -54,4 +54,18 @@ elseif(ROS_VERSION STREQUAL 2)
   sensor_msgs
   nav_msgs
   pcl_conversions)
+
+  message(STATUS "********************lidar_localization: ${CMAKE_CURRENT_LIST_DIR}/include")
+
+  # Add install rules
+  install(TARGETS lidar_localization
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib
+          RUNTIME DESTINATION bin
+  )
+
+  install(DIRECTORY include/
+          DESTINATION include
+          FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+  )
 endif()

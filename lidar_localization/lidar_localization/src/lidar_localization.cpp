@@ -31,6 +31,7 @@ LidarLocalization::LidarLocalization(const YAML::Node &config_node)
   : config_node_(config_node) {
   std::string lidar_topic = config_node_["lidar_topic"].as<std::string>();
   is_pub_cloud_ = config_node["is_pub_cloud"].as<bool>();
+  is_pub_map_ = config_node["is_pub_map"].as<bool>();
   input_cloud_size_thr_ = config_node["input_cloud_size_thr"].as<size_t>();
   blind_distance_ = config_node["lidar_matcher"]["blind_distance"].as<double>();
 
@@ -219,19 +220,53 @@ void LidarLocalization::addLidarData(const pcl::PointCloud<RsPointXYZIRT>::Ptr &
 bool LidarLocalization::initMap() {
   // 加载地图
   map_path_ = PROJECT_DIR + config_node_["map_path"].as<std::string>();
-  pcl::PointCloud<PointT>::Ptr map_ptr(new pcl::PointCloud<PointT>);
-  map_cloud_ptr_.reset(new pcl::PointCloud<PointT>());
-  if (pcl::io::loadPCDFile<PointT>(map_path_, *map_ptr) == -1) {
+  pcl::PointCloud<MapPointT>::Ptr map_ptr_rgb(new pcl::PointCloud<MapPointT>);
+  if (pcl::io::loadPCDFile<MapPointT>(map_path_, *map_ptr_rgb) == -1) {
     std::cout << "Failed to load map: " << map_path_ << std::endl;
     return false;
   }
   std::cout << "Loaded map: " << map_path_ << std::endl;
+  pcl::PointCloud<PointT>::Ptr map_ptr(new pcl::PointCloud<PointT>);
+  for(int i = 0; i < map_ptr_rgb->points.size(); i++) {
+    auto &pt = map_ptr_rgb->points[i];
+    PointT p_tmp;
+    p_tmp.x = pt.x;
+    p_tmp.y = pt.y;
+    p_tmp.z = pt.z;
+    map_ptr->points.push_back(p_tmp);
+  }
+
+  if(is_pub_map_) {
+#ifdef ROS1
+    static ros::NodeHandle nh_;
+    static ros::Publisher pub_map = nh_.advertise<sensor_msgs::PointCloud2>("/map_cloud", 1);
+    std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for node to be ready
+    sensor_msgs::PointCloud2 map_cloud_msg;
+    pcl::toROSMsg(*map_ptr_rgb, map_cloud_msg);
+    map_cloud_msg.header.stamp = ros::Time::now();
+    map_cloud_msg.header.frame_id = "rslidar";
+    pub_map.publish(map_cloud_msg);
+    std::cout << "ROS1 map published" << std::endl;
+#endif
+#ifdef ROS2
+    static auto nh_ = rclcpp::Node::make_shared("map_pub_node");
+    static auto pub_map = nh_->create_publisher<sensor_msgs::msg::PointCloud2>("/map_cloud", 1);
+    sensor_msgs::msg::PointCloud2 map_cloud_msg;
+    pcl::toROSMsg(*map_ptr_rgb, map_cloud_msg);
+    map_cloud_msg.header.stamp = rclcpp::Clock().now();
+    map_cloud_msg.header.frame_id = "rslidar";
+    pub_map->publish(map_cloud_msg);
+    std::cout << "map published" << std::endl;
+#endif
+  }
+
   map_ptr->is_dense = false;
   map_ptr->height = 1;
   map_ptr->width = map_ptr->points.size();
   std::vector<int> indices;
   pcl::removeNaNFromPointCloud(*map_ptr, *map_ptr, indices);
     // 地图下采样
+  map_cloud_ptr_.reset(new pcl::PointCloud<PointT>());
   pcl::VoxelGrid<PointT> voxel_filter;
   voxel_filter.setInputCloud(map_ptr);
   voxel_filter.setLeafSize(0.3, 0.3, 0.3);

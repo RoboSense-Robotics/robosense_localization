@@ -1,6 +1,6 @@
 # msg callback topic
 imu_topic: /rs_imu
-can_topic:  /odom
+odom_topic:  /odom
 loc_odom_topic: /pnc/abs/odom
 lidar_odom_topic: "/lidar_pose_xyz"
 #init pose

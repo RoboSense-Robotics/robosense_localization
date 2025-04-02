@@ -11,9 +11,9 @@
 
 ## 2. Prerequisites
 
-This project is developed and tested based on `ros2 humble` + `python 3.8.10`.
+This project is developed and tested based on `ros2 humble/ros1 noetic`+ `python 3.8.10` .
 
-The `msf_localization` and `lidar_localization` modules depend on `ros2` and the dependencies defined in `package.xml`.
+The `msf_localization` and `lidar_localization` modules depend on `ros2/ros1` and the dependencies defined in `package.xml`.
 
 `msf_localization` depend on glog to log information  
 
@@ -22,7 +22,7 @@ The `msf_localization` and `lidar_localization` modules depend on `ros2` and the
 sudo apt install libgoogle-glog-dev
 ```
 
-### 2.1 Install ros2
+### 2.1 Install ros
 
 Follow the specified content in the [official tutorial](https://fishros.org/doc/ros2/humble/Installation.html) for your operating system.
 
@@ -41,13 +41,31 @@ sudo apt-get install -y python3 python3-pip
 
 ### 3.1 Pulling Source Code
 
-You can create a new folder or go into your existing `ros2` workspace and execute the following command to clone the code into the workspace.
+You can create a new folder or go into your existing `ros` workspace and execute the following command to clone the code into the workspace.
 
 ```bash
 git clone git@gitlab.robosense.cn:super_sensor_sdk/ros2_sdk/localization.git -b main
 ```
 
 ### 3.3 Compile localization
+
+This project supports both `ros1` and `ros2`
+
+**ros1:**
+
+Execute the following commands in your workspace to compile and install `localization`.
+
+```bash
+catkin_make
+```
+
+After compilation and installation, it is recommended to refresh the workspace's `bash profile` to ensure everything functions properly.
+
+```bash
+source devel/setup.bash
+```
+
+**ros2:**
 
 Execute the following commands in your workspace to compile and install `localization`.
 
@@ -65,6 +83,22 @@ source install/setup.bash
 
 ### 4.1 Run Localization Nodes
 
+**ros1:**
+
+Run the fusion localization node
+
+```bash
+rosrun msf_localization msf_localization_node 
+```
+
+Run the point cloud localization node
+
+```bash
+rosrun lidar_localization lidar_localization_node
+```
+
+**ros2:**
+
 Run the fusion localization node
 
 ```bash
@@ -77,6 +111,14 @@ ros2 run lidar_localization lidar_localization_node
 ```
 
 ### 4.2 Rviz Visualize 
+
+**ros2:**
+
+```bash
+rviz -d msf_localization/rviz/rviz2_config.rviz
+```
+
+**ros2:**
 
 ```bash
 rviz2 -d msf_localization/rviz/rviz2_config.rviz

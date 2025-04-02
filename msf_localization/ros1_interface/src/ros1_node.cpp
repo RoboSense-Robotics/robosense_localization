@@ -27,7 +27,7 @@ int main (int argc, char** argv) {
     // Initialize ros.
     ros::init(argc, argv, "msf_localization");
     ros::NodeHandle nh;
-    RosInterface localizer(nh);
+    Ros1Interface localizer(nh);
     ros::spin();
     return 1;
 }

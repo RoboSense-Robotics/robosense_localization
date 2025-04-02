@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+
+  <name>msf_localization</name>
+  <version>0.0.0</version>
+  <description>The msf_localization package</description>
+  <maintainer email="dylan.du@robosense.cn">dylan.du</maintainer>
+  <license>Apache-2.0</license>
+  
+  <!-- ROS1 dependencies -->
+  <!-- <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <build_depend>tf2</build_depend> 
+  <build_export_depend>tf2</build_export_depend> 
+  <exec_depend>tf2</exec_depend> -->
+
+  <!-- ROS2 dependencies -->
+    <!-- Dependencies -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>tf2_ros</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

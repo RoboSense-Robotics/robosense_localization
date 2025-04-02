@@ -11,18 +11,19 @@
 
 ## 2. 前置依赖
 
-此项目基于 `ros2 humble` + `python 3.8.10` 进行开发测试
+此项目基于 `ros2 humble/ros1 noetic`+ `python 3.8.10` 进行开发测试
 
-`msf_localization` 模块和 `lidar_localization` 模块依赖 `ros2` 以及 `package.xml` 中定义的依赖项
+`msf_localization` 模块和 `lidar_localization` 模块依赖 `ros2/ros1`以及 `package.xml` 中定义的依赖项
 
 `msf_localization` 依赖glog记录log信息 
 
 **Ubuntu:** 
+
 ```bash
 sudo apt install libgoogle-glog-dev
 ```
 
-### 2.1 安装 ros2
+### 2.1 安装 ros
 
 根据您的操作系统选择 [官方教程](https://fishros.org/doc/ros2/humble/Installation.html) 中的指定内容进行执行
 
@@ -43,12 +44,30 @@ sudo apt-get install -y python3 python3-pip
 
 ### 3.1 代码拉取
 
-您可以创建一个新的文件夹或进入您现有的 `ros2` 工作空间，执行以下命令将代码拉取到工作空间内
+您可以创建一个新的文件夹或进入您现有的 `ros` 工作空间，执行以下命令将代码拉取到工作空间内
 
 ```bash
 git clone git@gitlab.robosense.cn:super_sensor_sdk/ros2_sdk/localization.git -b main
 ```
 ### 3.3 编译 localization
+
+本工程同时支持`ros1`和`ros2`
+
+**ros1:**
+
+在您的工作空间下执行以下命令来编译安装 `localization`
+
+```bash
+catkin_make
+```
+
+编译安装完成后，推荐刷新一下工作空间的 `bash profile`，确保组件功能正常
+
+```bash
+source devel/setup.bash
+```
+
+**ros2:**
 
 在您的工作空间下执行以下命令来编译安装 `localization`
 
@@ -66,6 +85,22 @@ source install/setup.bash
 
 ### 4.1 运行定位节点
 
+**ros1:**
+
+运行融合定位节点
+
+```bash
+rosrun msf_localization msf_localization_node 
+```
+
+运行点云定位节点
+
+```bash
+rosrun lidar_localization lidar_localization_node
+```
+
+**ros2:**
+
 运行融合定位节点
 
 ```bash
@@ -78,6 +113,13 @@ ros2 run lidar_localization lidar_localization_node
 ```
 
 ### 4.2 Rviz可视化
+
+**ros1:**
+
+```bash
+rviz -d msf_localization/rviz/rviz2_config.rviz
+```
+**ros2:**
 
 ```bash
 rviz2 -d msf_localization/rviz/rviz2_config.rviz
