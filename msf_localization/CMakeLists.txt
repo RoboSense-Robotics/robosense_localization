@@ -1,15 +1,28 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
+if(POLICY CMP0148)
+  cmake_policy(SET CMP0148 OLD)
+endif()
 project(msf_localization)
+
 
 add_compile_options(-std=c++17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-SET(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Release")
+set(POLICY CMP0048 NEW)
+
 
 find_package(yaml-cpp REQUIRED)
 add_subdirectory(eskf)
 # Detect ROS version
 if(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 1)
   message("Detected ROS1")
+
+  message(STATUS "=== Building for ROS1 ===")
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/package_ros1.xml
+    ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
+    COPYONLY
+  )
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     nav_msgs
@@ -20,6 +33,10 @@ if(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 1)
   add_library(ros1_interface_lib
     ros1_interface/src/ros1_interface.cpp
   )
+  target_include_directories(ros1_interface_lib PUBLIC
+    ${catkin_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ros1_interface/include
+  )
   target_link_libraries(ros1_interface_lib
     ${catkin_LIBRARIES}
     eskf_lib
@@ -28,10 +45,22 @@ if(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 1)
   )
   target_compile_definitions(ros1_interface_lib PUBLIC -DPROJECT_PATH="${CMAKE_CURRENT_LIST_DIR}/")
   set(INTERFACE_LIB ros1_interface_lib)
-  add_executable(${PROJECT_NAME}_node ros1_interface/src/ros1_node.cpp)
+
+  add_executable(${PROJECT_NAME}_node 
+    ros1_interface/src/ros1_node.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}_node PUBLIC 
+    ros1_interface_lib  
+  )
 
 elseif(DEFINED ENV{ROS_VERSION} AND $ENV{ROS_VERSION} EQUAL 2)
   message("Detected ROS2")
+  message(STATUS "=== Building for ROS2 ===")
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/package_ros2.xml
+    ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
+    COPYONLY
+  )
   find_package(ament_cmake REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(std_msgs REQUIRED)

@@ -20,7 +20,7 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     // Load configs.
     double acc_noise, gyro_noise, acc_bias_noise, gyro_bias_noise, can_odom_noise, lidar_t_noise, lidar_R_noise;
     double p_init_sigma, v_init_sigma, R_init_sigma, ba_init_sigma, bg_init_sigma;
-    std::string imu_topic, can_topic, lidar_odom_topic, loc_odom_topic ;
+    std::string imu_topic, odom_topic, lidar_odom_topic, loc_odom_topic ;
     double x_imu_vehicle, y_imu_vehicle, z_imu_vehicle, roll_imu_vehicle, pitch_imu_vehicle, yaw_imu_vehicle;
     // set meta path
     std::string PROJECT_PATH_ = PROJECT_PATH;
@@ -30,7 +30,7 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     YAML::Node loc_cfg = YAML::LoadFile(loc_param_path);
     // get loc param from meta
     imu_topic = loc_cfg["imu_topic"].as<std::string>();
-    can_topic = loc_cfg["can_topic"].as<std::string>();
+    odom_topic = loc_cfg["odom_topic"].as<std::string>();
     loc_odom_topic = loc_cfg["loc_odom_topic"].as<std::string>();
     lidar_odom_topic = loc_cfg["lidar_odom_topic"].as<std::string>();
 
@@ -49,6 +49,13 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     g_ = loc_cfg["gravity"].as<double>();
     can_update_ = loc_cfg["can_update"].as<bool>();
     pub_traj_ = loc_cfg["pub_traj"].as<bool>();
+    // get init location from meta
+    double x_init = loc_cfg["x_init"].as<double>();
+    double y_init = loc_cfg["y_init"].as<double>();
+    double z_init = loc_cfg["z_init"].as<double>();
+    double roll_init = loc_cfg["roll_init"].as<double>();
+    double pitch_init = loc_cfg["pitch_init"].as<double>(); 
+    double yaw_init = loc_cfg["yaw_init"].as<double>();
     // get calib param from meta
     x_imu_vehicle = loc_cfg["x_imu_vehicle"].as<double>();
     y_imu_vehicle = loc_cfg["y_imu_vehicle"].as<double>();
@@ -59,10 +66,18 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     Eigen::Vector3d gravity_vec(0, 0, -g_);
     std::cout << "-------------------- Configuration --------------------"<<std::endl;
     std::cout << "IMU Topic: " << imu_topic<<std::endl;
-    std::cout << "CAN Topic: " << can_topic<<std::endl;
+    std::cout << "Odom Topic: " << odom_topic<<std::endl;
     std::cout << "Lidar Odometry Topic: " << lidar_odom_topic<<std::endl;
     std::cout << "Localization Odometry Topic: " << loc_odom_topic<<std::endl;
     std::cout << "-------------------------------------------------------"<<std::endl;
+    std::cout << "Init Location:"<<std::endl;
+    std::cout << "x: " << x_init<<std::endl;
+    std::cout << "y: " << y_init<<std::endl;
+    std::cout << "z: " << z_init<<std::endl;
+    std::cout << "roll: " << roll_init<<std::endl;
+    std::cout << "pitch: " << pitch_init<<std::endl;
+    std::cout << "yaw: " << yaw_init<<std::endl;
+    std::cout << "-------------------------------------------------------"<<std::endl;   
     std::cout << "Accelerometer Noise: " << acc_noise<<std::endl;
     std::cout << "Gyroscope Noise: " << gyro_noise<<std::endl;
     std::cout << "Accelerometer Bias Noise: " << acc_bias_noise<<std::endl;
@@ -87,6 +102,14 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     std::cout << "can_update: " << can_update_<<std::endl;
     std::cout << "pub_traj: " << pub_traj_<<std::endl;
     std::cout << "-------------------------------------------------------"<<std::endl;
+
+    // init transform
+    Eigen::Vector3d init_pose(x_init, y_init, z_init);
+    Eigen::Matrix3d init_R = Eigen::Matrix3d::Identity();
+    init_R = Eigen::AngleAxisd(yaw_init, Eigen::Vector3d::UnitZ()) *
+                            Eigen::AngleAxisd(pitch_init, Eigen::Vector3d::UnitY()) *
+                            Eigen::AngleAxisd(roll_init, Eigen::Vector3d::UnitX());
+    // imu to vehicle transform
     rotation_imu_vehicle_ = Eigen::AngleAxisd(yaw_imu_vehicle, Eigen::Vector3d::UnitZ()) *
                             Eigen::AngleAxisd(pitch_imu_vehicle, Eigen::Vector3d::UnitY()) *
                             Eigen::AngleAxisd(roll_imu_vehicle, Eigen::Vector3d::UnitX());
@@ -94,9 +117,10 @@ Ros1Interface::Ros1Interface(ros::NodeHandle& nh) {
     // Initialization EskfInterface    
     eskf_interface_ptr_ = std::make_unique<Robosense::EskfInterface>(acc_noise, gyro_noise, 
                     acc_bias_noise, gyro_bias_noise, can_odom_noise, lidar_t_noise, lidar_R_noise, gravity_vec);
+    eskf_interface_ptr_->setInitPose(init_pose, init_R);
     eskf_interface_ptr_->setInitSigma(p_init_sigma, v_init_sigma, R_init_sigma, ba_init_sigma, bg_init_sigma);
     eskf_interface_ptr_->ifCanUpdate(can_update_);
-    can_odom_sub_ = nh.subscribe(can_topic, 1000, &Ros1Interface::chassisCallback, this);
+    odom_sub_ = nh.subscribe(odom_topic, 1000, &Ros1Interface::odomCallback, this);
     imu_sub_ = nh.subscribe(imu_topic, 1000, &Ros1Interface::imuCallback, this);
     lidar_odom_sub_ = nh.subscribe(lidar_odom_topic, 1000, &Ros1Interface::lidarOdomCallback, this);
     traj_pub_ = nh.advertise<nav_msgs::Path>("fused_path", 10);
@@ -219,30 +243,8 @@ void Ros1Interface::imuCallback(const sensor_msgs::ImuConstPtr& imu_msg_ptr) {
     }
 }
 
-
-void Ros1Interface::chassisCallback(const ros_adapter::HunterStatus::ConstPtr& msg_ptr) {
-    can_speed_mps_ = msg_ptr->linear_velocity;
-    if (abs(can_speed_mps_) < 1e-4){
-        cur_car_status_ = Robosense::stop;
-    }
-    else if (can_speed_mps_ > 1e-4)
-        cur_car_status_ = Robosense::forward;
-    else
-        cur_car_status_ = Robosense::backward;
-    Robosense::CanOdomDataPtr can_odom_data_ptr = std::make_shared<Robosense::CanOdomData>();
-    can_odom_data_ptr->timestamp = msg_ptr->header.stamp.toSec();
-    can_odom_data_ptr->vel << can_speed_mps_, 0.0, 0.0;
-    std::unique_lock<std::mutex> lock(can_odom_buff_mutex_);
-    can_odom_buff_[can_odom_data_ptr->timestamp] = can_odom_data_ptr;
-    trimOdomQueue(can_odom_data_ptr->timestamp);
-    if (!started_.load()) {
-        init_can_ptr_ = can_odom_data_ptr;
-        can_ready_.store(true);
-        return;
-    }
-}
 //user self adapt
-void Ros1Interface::canOdomCallback(const nav_msgs::OdometryConstPtr& msg_ptr) {
+void Ros1Interface::odomCallback(const nav_msgs::OdometryConstPtr& msg_ptr) {
     can_speed_mps_ = msg_ptr->twist.twist.linear.x;
     if (abs(can_speed_mps_) < 1e-4){
         cur_car_status_ = Robosense::stop;

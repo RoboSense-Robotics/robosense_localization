@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.15)
-
+cmake_minimum_required(VERSION 3.10)
+if(POLICY CMP0148)
+  cmake_policy(SET CMP0148 OLD)
+endif()
 project(lidar_localization)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -13,7 +15,13 @@ set(ROS_VERSION $ENV{ROS_VERSION})
 message("ros_version:" $ENV{ROS_VERSION})
 
 if(ROS_VERSION STREQUAL 1)
-    # ROS1 setup
+  # ROS1 setup
+  add_definitions(-DROS1)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/package_ros1.xml
+    ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
+    COPYONLY
+  )
     find_package(catkin REQUIRED COMPONENTS
         roscpp
         sensor_msgs
@@ -28,16 +36,20 @@ if(ROS_VERSION STREQUAL 1)
     link_directories(
         ${catkin_LIBRARY_DIRS}
     )
-    add_definitions(-DROS1)
 elseif(ROS_VERSION STREQUAL 2)
-    message("ROS2 found")
     # ROS2 setup
+    message("ROS2 found")
+    add_definitions(-DROS2)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/package_ros2.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}/package.xml
+        COPYONLY
+    )
     find_package(ament_cmake REQUIRED)
     find_package(rclcpp REQUIRED)
     find_package(rclcpp_components REQUIRED)
     find_package(sensor_msgs REQUIRED)
     find_package(nav_msgs REQUIRED)
-    add_definitions(-DROS2)
 else()
     message(FATAL_ERROR "Unsupported ROS version: ${ROS_VERSION}")
 endif()

@@ -9,7 +9,8 @@ init_position: [2.0, 4.0, 0.0] #[0.0, 0.0, 0.0] # x, y, z
 #init euler
 init_euler: [0.0, 0.0, 0.0] # roll, pitch, yaw
 #是否发布点云  debug
-is_pub_cloud: false
+is_pub_cloud: true
+is_pub_map: true
 #输入点云最小点数   
 input_cloud_size_thr: 1000
 #lidar to vehicle calibration 

@@ -23,7 +23,7 @@ Ros2Interface::Ros2Interface(std::shared_ptr<rclcpp::Node> node) {
     // Load configs.
     double acc_noise, gyro_noise, acc_bias_noise, gyro_bias_noise, can_odom_noise, lidar_t_noise, lidar_R_noise;
     double p_init_sigma, v_init_sigma, R_init_sigma, ba_init_sigma, bg_init_sigma;
-    std::string imu_topic, can_topic, lidar_odom_topic, loc_odom_topic ;
+    std::string imu_topic, odom_topic, lidar_odom_topic, loc_odom_topic ;
     double x_imu_vehicle, y_imu_vehicle, z_imu_vehicle, roll_imu_vehicle, pitch_imu_vehicle, yaw_imu_vehicle;
     // set meta path
     std::string PROJECT_PATH_ = PROJECT_PATH;
@@ -33,7 +33,7 @@ Ros2Interface::Ros2Interface(std::shared_ptr<rclcpp::Node> node) {
     YAML::Node loc_cfg = YAML::LoadFile(loc_param_path);
     // get loc param from meta
     imu_topic = loc_cfg["imu_topic"].as<std::string>();
-    can_topic = loc_cfg["can_topic"].as<std::string>();
+    odom_topic = loc_cfg["odom_topic"].as<std::string>();
     loc_odom_topic = loc_cfg["loc_odom_topic"].as<std::string>();
     lidar_odom_topic = loc_cfg["lidar_odom_topic"].as<std::string>();
     // get init location from meta
@@ -69,7 +69,7 @@ Ros2Interface::Ros2Interface(std::shared_ptr<rclcpp::Node> node) {
     Eigen::Vector3d gravity_vec(0, 0, -g_);
     std::cout << "-------------------- Configuration --------------------"<<std::endl;
     std::cout << "IMU Topic: " << imu_topic<<std::endl;
-    std::cout << "CAN Topic: " << can_topic<<std::endl;
+    std::cout << "Odom Topic: " << odom_topic<<std::endl;
     std::cout << "Lidar Odometry Topic: " << lidar_odom_topic<<std::endl;
     std::cout << "Localization Odometry Topic: " << loc_odom_topic<<std::endl;
     std::cout << "-------------------------------------------------------"<<std::endl;
@@ -124,7 +124,7 @@ Ros2Interface::Ros2Interface(std::shared_ptr<rclcpp::Node> node) {
     eskf_interface_ptr_->setInitSigma(p_init_sigma, v_init_sigma, R_init_sigma, ba_init_sigma, bg_init_sigma);
     eskf_interface_ptr_->ifCanUpdate(can_update_);
     can_odom_sub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(
-        can_topic, 1000, std::bind(&Ros2Interface::canOdomCallback, this, std::placeholders::_1));
+        odom_topic, 1000, std::bind(&Ros2Interface::canOdomCallback, this, std::placeholders::_1));
     imu_sub_ = nh_->create_subscription<sensor_msgs::msg::Imu>(
         imu_topic, 1000, std::bind(&Ros2Interface::imuCallback, this, std::placeholders::_1));
     lidar_odom_sub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(
